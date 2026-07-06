@@ -1,34 +1,474 @@
 <!DOCTYPE html>
-<html>
-<head><title>用户管理</title></head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>用户管理系统</title>
+    <style>
+        /* ===== 全局样式 ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft YaHei", sans-serif;
+            background: #f0f2f5;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px 35px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+        }
+        h1 {
+            font-size: 28px;
+            color: #1a1a2e;
+            border-left: 5px solid #4a90d9;
+            padding-left: 16px;
+            margin-bottom: 25px;
+        }
+
+        /* ===== 表单区域 ===== */
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            background: #f8f9fc;
+            padding: 20px 24px;
+            border-radius: 12px;
+            margin-bottom: 28px;
+            align-items: flex-end;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            flex: 1 1 140px;
+        }
+        .form-group label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #d0d7de;
+            border-radius: 8px;
+            font-size: 15px;
+            transition: 0.2s;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #4a90d9;
+            box-shadow: 0 0 0 3px rgba(74,144,217,0.2);
+        }
+        .btn {
+            padding: 8px 22px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary {
+            background: #4a90d9;
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: #3a78c2;
+            transform: translateY(-1px);
+        }
+        .btn-success {
+            background: #28a745;
+            color: #fff;
+        }
+        .btn-success:hover {
+            background: #1e7e34;
+        }
+        .btn-danger {
+            background: #dc3545;
+            color: #fff;
+        }
+        .btn-danger:hover {
+            background: #b02a37;
+        }
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+        .btn-warning:hover {
+            background: #e0a800;
+        }
+        .btn-sm {
+            padding: 4px 14px;
+            font-size: 13px;
+        }
+
+        /* ===== 表格 ===== */
+        .table-wrapper {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+        thead {
+            background: #e9ecf3;
+        }
+        th {
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+        td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #e9ecf3;
+            vertical-align: middle;
+        }
+        tr:hover td {
+            background: #f8f9fc;
+        }
+        .col-id {
+            width: 60px;
+            text-align: center;
+        }
+        .col-name {
+            min-width: 100px;
+        }
+        .col-age {
+            width: 80px;
+            text-align: center;
+        }
+        .col-actions {
+            width: 180px;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .col-actions .btn {
+            margin: 0 3px;
+        }
+
+        /* ===== 空状态 / 加载 ===== */
+        .loading {
+            text-align: center;
+            color: #888;
+            padding: 30px 0;
+        }
+        .empty {
+            text-align: center;
+            color: #aaa;
+            padding: 30px 0;
+            font-size: 16px;
+        }
+
+        /* ===== 弹窗（模态框） ===== */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.45);
+            justify-content: center;
+            align-items: center;
+            z-index: 999;
+        }
+        .modal-overlay.active {
+            display: flex;
+        }
+        .modal-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 30px 36px;
+            width: 400px;
+            max-width: 92%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeIn 0.25s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .modal-box h2 {
+            font-size: 22px;
+            margin-bottom: 20px;
+            color: #1a1a2e;
+        }
+        .modal-box .form-group {
+            flex: 1 1 100%;
+            margin-bottom: 16px;
+        }
+        .modal-box .form-group input {
+            width: 100%;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .modal-actions .btn {
+            padding: 8px 28px;
+        }
+        .btn-secondary {
+            background: #e9ecf3;
+            color: #333;
+        }
+        .btn-secondary:hover {
+            background: #d5dae6;
+        }
+    </style>
+</head>
 <body>
-    <h2>用户列表</h2>
-    <ul id="userList"></ul>
-    <h3>新增用户</h3>
-    <input id="nameInput" placeholder="姓名">
-    <input id="ageInput" placeholder="年龄" type="number">
-    <button onclick="addUser()">添加</button>
 
-    <script>
-        async function loadUsers() {
-            const res = await fetch('/users');
-            const data = await res.json();
-            const list = document.getElementById('userList');
-            list.innerHTML = data.data.map(u => `<li>${u.id}. ${u.name} (${u.age}岁)</li>`).join('');
+<div class="container">
+    <h1>👥 用户管理系统</h1>
+
+    <!-- ===== 新增用户表单 ===== -->
+    <div class="form-row" id="addForm">
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" id="inputName" placeholder="请输入姓名" />
+        </div>
+        <div class="form-group">
+            <label>年龄</label>
+            <input type="number" id="inputAge" placeholder="请输入年龄" />
+        </div>
+        <button class="btn btn-primary" id="btnAdd">➕ 新增用户</button>
+    </div>
+
+    <!-- ===== 用户列表表格 ===== -->
+    <div class="table-wrapper">
+        <table>
+            <thead>
+                <tr>
+                    <th class="col-id">ID</th>
+                    <th class="col-name">姓名</th>
+                    <th class="col-age">年龄</th>
+                    <th class="col-actions">操作</th>
+                </tr>
+            </thead>
+            <tbody id="userTableBody">
+                <tr><td colspan="4" class="loading">⏳ 加载中...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ===== 修改弹窗 ===== -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal-box">
+        <h2>✏️ 修改用户</h2>
+        <div class="form-group">
+            <label>姓名</label>
+            <input type="text" id="editName" placeholder="请输入新姓名" />
+        </div>
+        <div class="form-group">
+            <label>年龄</label>
+            <input type="number" id="editAge" placeholder="请输入新年龄" />
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-secondary" id="btnCancelEdit">取消</button>
+            <button class="btn btn-success" id="btnSaveEdit">💾 保存修改</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ============================================================
+    //  1. 配置
+    // ============================================================
+    const API_BASE = 'http://127.0.0.1:8000';
+
+    // ============================================================
+    //  2. 工具函数：发请求
+    // ============================================================
+    async function fetchUsers() {
+    const resp = await fetch(`${API_BASE}/users`);
+    if (!resp.ok) throw new Error('获取用户列表失败');
+    const result = await resp.json();
+    // 你的后端返回的是纯数组，直接返回 result
+    return result;
+    }
+
+    async function addUser(name, age) {
+        const resp = await fetch(`${API_BASE}/users`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, age })
+        });
+        if (!resp.ok) throw new Error('新增用户失败');
+        return resp.json();
+    }
+
+    async function updateUser(id, name, age) {
+        const body = {};
+        if (name !== undefined && name !== null) body.name = name;
+        if (age !== undefined && age !== null) body.age = age;
+        const resp = await fetch(`${API_BASE}/users/${id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!resp.ok) throw new Error('修改用户失败');
+        return resp.json();
+    }
+
+    async function deleteUser(id) {
+        const resp = await fetch(`${API_BASE}/users/${id}`, {
+            method: 'DELETE'
+        });
+        if (!resp.ok) throw new Error('删除用户失败');
+        return resp.json();
+    }
+
+    // ============================================================
+    //  3. 渲染表格
+    // ============================================================
+    function renderUsers(users) {
+        const tbody = document.getElementById('userTableBody');
+        if (!users || users.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty">📭 暂无用户，请新增</td></tr>`;
+            return;
+        }
+        let html = '';
+        for (const u of users) {
+            html += `
+                <tr>
+                    <td class="col-id">${u.id}</td>
+                    <td class="col-name"><strong>${escapeHtml(u.name)}</strong></td>
+                    <td class="col-age">${u.age}</td>
+                    <td class="col-actions">
+                        <button class="btn btn-warning btn-sm" onclick="openEditModal(${u.id}, '${escapeHtml(u.name)}', ${u.age})">✏️ 编辑</button>
+                        <button class="btn btn-danger btn-sm" onclick="handleDelete(${u.id})">🗑️ 删除</button>
+                    </td>
+                </tr>
+            `;
+        }
+        tbody.innerHTML = html;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // ============================================================
+    //  4. 加载列表
+    // ============================================================
+    async function loadUserList() {
+        const tbody = document.getElementById('userTableBody');
+        tbody.innerHTML = `<tr><td colspan="4" class="loading">⏳ 加载中...</td></tr>`;
+        try {
+            const users = await fetchUsers();
+            renderUsers(users);
+        } catch (err) {
+            tbody.innerHTML = `<tr><td colspan="4" class="empty">❌ 加载失败：${err.message}</td></tr>`;
+            console.error(err);
+        }
+    }
+
+    // ============================================================
+    //  5. 新增用户
+    // ============================================================
+    document.getElementById('btnAdd').addEventListener('click', async () => {
+        const nameInput = document.getElementById('inputName');
+        const ageInput = document.getElementById('inputAge');
+        const name = nameInput.value.trim();
+        const age = parseInt(ageInput.value);
+
+        if (!name) { alert('请输入姓名'); return; }
+        if (isNaN(age) || age < 0 || age > 150) { alert('请输入有效年龄（0~150）'); return; }
+
+        try {
+            await addUser(name, age);
+            nameInput.value = '';
+            ageInput.value = '';
+            await loadUserList();
+        } catch (err) {
+            alert('❌ 新增失败：' + err.message);
+        }
+    });
+
+    // ============================================================
+    //  6. 删除用户
+    // ============================================================
+    window.handleDelete = async function(id) {
+        if (!confirm('⚠️ 确认要删除 ID 为 ' + id + ' 的用户吗？')) return;
+        try {
+            await deleteUser(id);
+            await loadUserList();
+        } catch (err) {
+            alert('❌ 删除失败：' + err.message);
+        }
+    };
+
+    // ============================================================
+    //  7. 编辑弹窗控制
+    // ============================================================
+    let editingUserId = null;
+
+    window.openEditModal = function(id, name, age) {
+        editingUserId = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editAge').value = age;
+        document.getElementById('editModal').classList.add('active');
+    };
+
+    function closeEditModal() {
+        editingUserId = null;
+        document.getElementById('editModal').classList.remove('active');
+    }
+    window.closeEditModal = closeEditModal;
+
+    // 点击背景关闭
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+
+    // 取消按钮
+    document.getElementById('btnCancelEdit').addEventListener('click', closeEditModal);
+
+    // 保存修改
+    document.getElementById('btnSaveEdit').addEventListener('click', async () => {
+        const name = document.getElementById('editName').value.trim();
+        const age = parseInt(document.getElementById('editAge').value);
+
+        if (!name && isNaN(age)) {
+            alert('⚠️ 请至少填写一项修改内容');
+            return;
+        }
+        if (!isNaN(age) && (age < 0 || age > 150)) {
+            alert('⚠️ 请输入有效年龄（0~150）');
+            return;
         }
 
-        async function addUser() {
-            const name = document.getElementById('nameInput').value;
-            const age = parseInt(document.getElementById('ageInput').value);
-            await fetch('/users', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({name, age})
-            });
-            loadUsers();
-        }
+        const payload = {};
+        if (name) payload.name = name;
+        if (!isNaN(age)) payload.age = age;
 
-        loadUsers();
-    </script>
+        try {
+            await updateUser(editingUserId, payload.name, payload.age);
+            closeEditModal();
+            await loadUserList();
+        } catch (err) {
+            alert('❌ 修改失败：' + err.message);
+        }
+    });
+
+    // ============================================================
+    //  8. 页面加载
+    // ============================================================
+    loadUserList();
+</script>
 </body>
 </html>
